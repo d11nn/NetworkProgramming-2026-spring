@@ -1,49 +1,31 @@
-# Network Programming Systems Portfolio
+# NYCU 2026 Network Programming Projects
 
-A four-project systems programming portfolio built for a Spring 2026 Network Programming course. The projects progress from a Unix-like shell to multi-user network services, an asynchronous HTTP/CGI console, and a SOCKS4/4A proxy.
+This repository contains four C++ networking and system programming projects from the NYCU Network Programming course, Spring 2026.
 
-The work focuses on process management, file-descriptor ownership, TCP server design, inter-process communication, asynchronous I/O, application-layer protocols, and reliability testing in C++.
+## Overview
 
-> The reviewable source code is included directly under [`projects/`](projects/). No access to the original private GitHub Classroom repositories is required.
+The projects build on one another. They begin with a Unix-like shell, extend it into multi-user TCP servers, expose remote shell sessions through HTTP and CGI, and finally route those sessions through a SOCKS4/4A proxy. Together they cover process control, file-descriptor management, concurrent server design, inter-process communication, asynchronous networking, and application-layer protocols.
 
-## Portfolio at a Glance
+All source code needed for review is included directly under [`projects/`](projects/). The original GitHub Classroom repositories remain separate and are not required to browse this repository.
 
-| Project | System | Main engineering topics | Source |
-| --- | --- | --- | --- |
-| 1 | NPShell and concurrent TCP shell server | `fork`/`exec`, ordinary and numbered pipes, redirection, environment isolation, socket-to-stdio bridging | [Browse Project 1](projects/01-npshell/) |
-| 2 | Remote Working Ground multi-user shell | `select`-based concurrency, process-per-client design, shared memory, signals, FIFO-based user pipes | [Browse Project 2](projects/02-rwg-server/) |
-| 3 | HTTP server and web-based remote console | Boost.Asio, HTTP parsing, CGI execution, asynchronous DNS/TCP, concurrent browser streaming | [Browse Project 3](projects/03-http-cgi-console/) |
-| 4 | SOCKS4/4A proxy and proxied CGI console | CONNECT/BIND, SOCKS4A domain resolution, dynamic firewall rules, bidirectional relay, protocol tests | [Browse Project 4](projects/04-socks-proxy/) |
+## Repository Structure
 
-## System Progression
-
-```mermaid
-flowchart LR
-    P1[Project 1<br/>Unix shell + TCP service]
-    P2[Project 2<br/>Multi-user remote shell]
-    P3[Project 3<br/>HTTP/CGI batch console]
-    P4[Project 4<br/>SOCKS4/4A proxy]
-
-    P1 -->|reuses the shell execution core| P2
-    P2 -->|provides remote shell endpoints| P3
-    P3 -->|extends the console with proxy transport| P4
-```
-
-## Engineering Highlights
-
-- Designed explicit file-descriptor routing for stdin, stdout, stderr, ordinary pipes, delayed numbered pipes, files, sockets, and cross-user pipes.
-- Implemented two multi-user server architectures for the same behavior: one event-driven process using `select`, and one process per client using shared memory, signals, and named FIFOs.
-- Built asynchronous HTTP and remote-console workflows with Boost.Asio, including DNS resolution, connection management, incremental reads, ordered command dispatch, and streamed browser updates.
-- Implemented SOCKS4/4A request parsing, CONNECT and two-reply BIND flows, wildcard firewall rules reloaded per request, and full-duplex TCP relay.
-- Added focused C++ component tests and Python integration tests for fragmented TCP prompts, HTTP/CGI behavior, concurrent remote sessions, SOCKS relay, BIND, and firewall reload.
+| Directory | Project | Main Topics |
+| --- | --- | --- |
+| [`projects/01-npshell/`](projects/01-npshell/) | NPShell and concurrent TCP shell server | Process execution, pipes, redirection, TCP |
+| [`projects/02-rwg-server/`](projects/02-rwg-server/) | Remote Working Ground server | Multi-user server, `select`, shared memory, FIFO |
+| [`projects/03-http-cgi-console/`](projects/03-http-cgi-console/) | HTTP/CGI remote console | Boost.Asio, HTTP, CGI, asynchronous I/O |
+| [`projects/04-socks-proxy/`](projects/04-socks-proxy/) | SOCKS4/4A proxy | CONNECT, BIND, firewall rules, TCP relay |
 
 ## Project Details
 
 ### [Project 1 — NPShell and Concurrent TCP Server](projects/01-npshell/)
 
-Project 1 implements a Unix-like command interpreter and exposes the same shell over TCP.
+#### Overview
 
-Core behavior:
+Project 1 implements a Unix-like command interpreter and then exposes the same shell through a concurrent TCP server. The main challenge is routing data correctly among commands, files, delayed pipes, and network sockets while managing multiple child processes.
+
+#### What I Implemented
 
 - Executes external commands through `fork`, `execvp`, and `waitpid`.
 - Supports ordinary pipes (`|`), stdout numbered pipes (`|N`), stdout-and-stderr numbered pipes (`!N`), and file redirection (`>`).
@@ -52,13 +34,27 @@ Core behavior:
 - Reaps completed child processes and separates per-connection shell state.
 - Uses a process-per-client TCP server; `dup2` maps the accepted socket to stdin, stdout, and stderr.
 
-Key design choice: reusable shell behavior lives in `shell_core.h`, while `npshell.cpp` and `np_simple.cpp` remain thin local and network entry points.
+#### Keywords and Technologies
+
+| Category | Topics |
+| --- | --- |
+| Keywords | Unix shell, command parsing, process lifecycle, file descriptors, ordinary pipe, numbered pipe, redirection, concurrent server |
+| Technologies | C++, POSIX APIs, `fork`, `execvp`, `pipe`, `dup2`, `waitpid`, signals, IPv4 TCP sockets |
+
+#### What I Learned
+
+- How a shell translates command syntax into processes and file-descriptor connections.
+- Why every process must close unused pipe ends to avoid deadlocks and delayed EOF.
+- How process waiting strategy affects large pipeline output and zombie-process cleanup.
+- How the same shell engine can serve both a local terminal and a network client by separating execution logic from I/O endpoints.
 
 ### [Project 2 — Multi-User Remote Working Ground Server](projects/02-rwg-server/)
 
-Project 2 extends the shell into a chat-like remote working environment for up to 30 users.
+#### Overview
 
-Shared behavior:
+Project 2 extends NPShell into a multi-user remote working environment for up to 30 concurrent users. In addition to running shell commands, connected users can inspect the user list, rename themselves, exchange messages, broadcast messages, and pipe command output directly to another user.
+
+#### What I Implemented
 
 - Preserves all Project 1 shell, pipe, redirection, and environment features.
 - Adds `who`, `name`, `tell`, and `yell` built-ins.
@@ -66,14 +62,32 @@ Shared behavior:
 - Transfers command output between users with `>N` and consumes it with `<N`.
 - Rejects nonexistent users, duplicate names, missing pipes, and duplicate pipes with explicit messages.
 
-Two concurrency models are implemented:
+Two server architectures implement the same behavior:
 
 1. `np_single_proc.cpp` multiplexes the listening socket and every client socket with `select`; users and anonymous user pipes stay in one process.
 2. `np_multi_proc.cpp` forks one process per client; System V shared memory stores the user registry and message queues, `SIGUSR1` triggers message delivery, and named FIFOs carry user-pipe data.
 
+#### Keywords and Technologies
+
+| Category | Topics |
+| --- | --- |
+| Keywords | Multi-user server, I/O multiplexing, process-per-client, IPC, shared state, synchronization, user pipe, message broadcast |
+| Technologies | C++, POSIX sockets, `select`, `fork`, System V shared memory, named FIFO, Unix signals, atomic spin lock |
+
+#### What I Learned
+
+- The trade-offs between a single-process event loop and a multi-process server.
+- How shared memory, synchronization, and signals coordinate state across processes.
+- How named FIFOs transfer data between users whose sessions run in different processes.
+- How to isolate each user's environment variables, delayed pipes, input buffer, and cleanup lifecycle.
+
 ### [Project 3 — Asynchronous HTTP/CGI Remote Console](projects/03-http-cgi-console/)
 
-Project 3 provides a browser interface that drives up to five remote shell sessions concurrently.
+#### Overview
+
+Project 3 builds a web-based remote batch console with Boost.Asio. A browser submits up to five remote shell targets and command files; the server connects to every target concurrently, waits for each shell prompt, sends commands one at a time, and streams the results back to the browser in real time.
+
+#### What I Implemented
 
 - `http_server` asynchronously accepts and parses HTTP requests, prepares CGI environment variables, maps the client socket to CGI output, and executes the allowed CGI program in a child process.
 - `console.cgi` parses session parameters from `QUERY_STRING`, connects to remote shell servers asynchronously, waits for each `% ` prompt, and sends the next command from the selected test file.
@@ -83,9 +97,28 @@ Project 3 provides a browser interface that drives up to five remote shell sessi
 
 The reliability suite exercises HTTP status handling, CGI environment propagation, fragmented TCP reads, multiple concurrent sessions, randomized command batches, and integration with the course-provided remote shell server.
 
+#### Keywords and Technologies
+
+| Category | Topics |
+| --- | --- |
+| Keywords | Event-driven server, asynchronous I/O, HTTP request parsing, CGI, remote batch execution, streaming response, output ordering, TCP fragmentation |
+| Technologies | C++14, Boost.Asio, TCP, HTTP, CGI environment variables, `fork`/`exec`, HTML, JavaScript, Python integration tests |
+
+#### What I Learned
+
+- How asynchronous resolve, connect, read, and write operations form a non-blocking session state machine.
+- Why TCP is a byte stream and prompts or messages may be split across multiple reads.
+- How CGI connects an HTTP server, process environment, standard output, and generated web content.
+- How to preserve output order while several remote sessions update one browser response concurrently.
+- Why remote output must be escaped for both HTML and JavaScript contexts.
+
 ### [Project 4 — SOCKS4/4A Proxy and CGI Client](projects/04-socks-proxy/)
 
-Project 4 adds a proxy layer between the web console and remote shell servers.
+#### Overview
+
+Project 4 implements a SOCKS4/4A proxy and extends the Project 3 web console into a SOCKS client. The proxy parses binary requests, applies firewall policy, establishes CONNECT or BIND sessions, and relays application traffic without depending on the application protocol carried inside the TCP stream.
+
+#### What I Implemented
 
 - Parses SOCKS4 requests and SOCKS4A domain names.
 - Supports CONNECT and BIND, including the two replies required by BIND before relaying traffic.
@@ -97,73 +130,34 @@ Project 4 adds a proxy layer between the web console and remote shell servers.
 
 The repository includes automated CONNECT, BIND, firewall-reload, and proxied-CGI tests, plus a manual report covering Firefox CONNECT, active-mode FTP BIND, and CGI-through-SOCKS scenarios.
 
-## Build and Run
+#### Keywords and Technologies
 
-### Requirements
+| Category | Topics |
+| --- | --- |
+| Keywords | Application-layer proxy, SOCKS4, SOCKS4A, CONNECT, BIND, binary protocol, firewall, wildcard matching, full-duplex relay |
+| Technologies | C++17, Boost.Asio, TCP, DNS resolution, `fork`, threads, Python `unittest`, active-mode FTP testing |
 
-- Linux or another POSIX environment for the complete project set
-- C++14 or newer; Project 4 uses C++17
-- GNU Make
-- Boost.Asio and `boost_system` for Projects 3 and 4 (the course environment used Boost 1.81)
-- Python 3 for integration tests and the provided CGI panels
-- A TCP client such as `telnet` or `nc` for shell-server demonstrations
+#### What I Learned
 
-Project 2 relies on Linux/POSIX facilities such as `clearenv`, System V shared memory, signals, and named FIFOs. Build outputs are intentionally excluded from this portfolio and should be produced on the target platform.
+- How to decode and encode a binary network protocol at the byte level.
+- The difference between SOCKS CONNECT and the two-stage SOCKS BIND workflow.
+- How SOCKS4A delegates domain-name resolution to the proxy server.
+- How a proxy performs bidirectional relay while handling EOF and connection shutdown correctly.
+- How per-request firewall loading allows rules to change without restarting the server.
 
-### Project 1
+## Technologies Used
 
-```bash
-cd projects/01-npshell
-make all
+| Area | Technologies and Concepts |
+| --- | --- |
+| Languages | C++14/C++17, Python, HTML, JavaScript |
+| Network programming | IPv4, TCP sockets, DNS resolution, client-server architecture, HTTP, CGI, SOCKS4/4A |
+| Concurrency | `select`, asynchronous event loops, process-per-client, threads, signals |
+| Process control | `fork`, `execvp`, `waitpid`, child reaping, environment variables |
+| I/O and IPC | File descriptors, `dup2`, anonymous pipes, numbered pipes, named FIFOs, System V shared memory |
+| Libraries and tools | Boost.Asio, GNU Make, Python `unittest`, Python `asyncio` integration tests |
+| Reliability topics | Partial TCP reads, output ordering, resource cleanup, error paths, protocol-level tests |
 
-./npshell
-./np_simple 7001
-telnet 127.0.0.1 7001
-```
-
-### Project 2
-
-```bash
-cd projects/02-rwg-server
-make all
-
-./np_single_proc 7001
-# or
-./np_multi_proc 7001
-```
-
-Open two or more terminals and connect each client with `telnet 127.0.0.1 7001` to exercise chat commands and user pipes.
-
-### Project 3
-
-```bash
-cd projects/03-http-cgi-console
-make part1       # http_server and console.cgi
-make part2       # cgi_server.exe
-make tests       # test_components
-
-./test_components
-python3 tests/run_reliability_suite.py
-```
-
-For the integrated panel-to-console flow, run `./cgi_server.exe 7001` and open `http://127.0.0.1:7001/panel.cgi`. The standalone `http_server` demonstrates the Linux fork/exec CGI path and currently applies an explicit CGI allowlist.
-
-### Project 4
-
-```bash
-cd projects/04-socks-proxy
-make
-
-./socks_server 7001
-```
-
-Run the repository-level automated suite from a Linux workspace where `socks_server`, `pj4.cgi`, `socks.conf`, and `test_case/` are in the expected locations:
-
-```bash
-python3 test_socks_server.py
-```
-
-## Source and Artifact Guide
+## Source Code Guide
 
 The public snapshot contains implementation, build, configuration, and test files. Private Git metadata, course specifications, provided binaries, presentation files, archives, and generated objects are intentionally excluded. See [`projects/README.md`](projects/README.md) for the snapshot policy.
 
@@ -236,17 +230,9 @@ The public snapshot contains implementation, build, configuration, and test file
 
 </details>
 
-## Validation Notes
+## Notes
 
-- Project 1 builds successfully in the current workspace and passes a smoke test covering `printenv` plus `removetag test.html | number`.
-- Project 2 is Linux-oriented; on macOS, compilation stops at the Linux `clearenv` API before the server targets are built.
-- Projects 3 and 4 require Boost headers and libraries. Their test sources and historical/manual test evidence are included, but a Boost development environment is required to rerun them.
-- The PDF specifications are course requirements; implementation claims in this README are based on the source code and included tests rather than the specifications alone.
-
-## Scope and Attribution
-
-The server implementations, reusable execution/session components, protocol handling, and added reliability tests form the portfolio work. Assignment specifications, presentation files, compiled binaries, archives, golden executables, and standalone CGI reference programs are not published in the source snapshots. Small helper-command sources and fixtures required to run the shells are included as course context.
-
-## CV-Ready Summary
-
-> Built a four-stage network systems portfolio in C++: a Unix-like shell with delayed pipes, two multi-user TCP server architectures, an asynchronous Boost.Asio HTTP/CGI remote console, and a SOCKS4/4A proxy supporting CONNECT, BIND, live firewall reload, and automated protocol-level integration tests.
+- The projects target Linux/POSIX networking and system programming environments.
+- Assignment specifications, presentation files, compiled binaries, archives, golden executables, and standalone CGI reference programs are not included in the public source directories.
+- Small helper-command sources and fixtures required to understand the shell behavior are included as course context.
+- Feature descriptions are based on the implementation and included tests, not only on the assignment requirements.
