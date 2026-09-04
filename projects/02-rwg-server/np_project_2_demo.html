@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NP Project 2 Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fff9ef;
+      --panel: rgba(255, 255, 255, 0.94);
+      --border: rgba(81, 49, 12, 0.14);
+      --text: #2d2418;
+      --shadow: 0 20px 45px rgba(81, 49, 12, 0.14);
+      --terminal-bg: #1f2430;
+      --terminal-text: #e9eef7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: auto;
+      min-height: 100vh;
+      font-family: "Iowan Old Style", "Palatino Linotype", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 210, 92, 0.35), transparent 28%),
+        radial-gradient(circle at top right, rgba(255, 109, 60, 0.2), transparent 22%),
+        linear-gradient(180deg, #fff9ef 0%, #fff3d9 100%);
+    }
+
+    .page {
+      position: relative;
+      width: 1480px;
+      margin: 0 auto;
+      padding: 56px 28px 40px;
+    }
+
+    .mascot {
+      position: absolute;
+      top: 8px;
+      /* width: min(18vw, 220px); */
+      width: 220px;
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.12));
+    }
+
+    .mascot-left {
+      left: 0;
+      transform: rotate(-6deg);
+    }
+
+    .mascot-right {
+      right: 18px;
+      transform: rotate(5deg);
+    }
+
+    .header {
+      text-align: center;
+      padding: 8px 140px 24px;
+    }
+
+    .header h1 {
+      margin: 0;
+      /* font-size: clamp(2rem, 3vw, 3rem); */
+      font-size: 3rem;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+
+    .header p {
+      margin: 12px auto 0;
+      max-width: 760px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .terminal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel-title {
+      padding: 18px 22px 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    pre {
+      margin: 18px;
+      padding: 20px 22px;
+      overflow: auto;
+      border-radius: 18px;
+      background: var(--terminal-bg);
+      color: var(--terminal-text);
+      box-shadow: 0 16px 36px rgba(17, 20, 29, 0.28);
+      font: 13.5px/1.45 "SFMono-Regular", "Menlo", "Consolas", monospace;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <img
+      class="mascot mascot-left"
+      src="https://tw.portal-pokemon.com/play/resources/pokedex/img/pm/2b3f6ff00db7a1efae21d85cfb8995eaff2da8d8.png"
+      alt="Pikachu"
+    >
+    <img
+      class="mascot mascot-right"
+      src="https://tw.portal-pokemon.com/play/resources/pokedex/img/pm/a42f1e83fdb6809384f2461670a1d81e227df05c.png"
+      alt="Snorlax"
+    >
+
+    <div class="header">
+      <h1>NP Project 2 Demo</h1>
+      <br>
+      <br>
+      <br>
+    </div>
+
+    <div class="terminal-grid">
+      <div class="panel">
+        <div class="panel-title">Pikachu</div>
+        <pre>bash$ telnet nplinux1.nycu.edu.tw 7001
+****************************************
+** Welcome to the information server. **
+****************************************
+*** User '(no name)' entered from 140.113.215.62:1201. ***
+% who
+&lt;ID&gt;    &lt;fd&gt;    &lt;nickname&gt;  &lt;IP:port&gt;   &lt;indicate me&gt;
+1   3   (no name)   140.113.215.62:1201 &lt;-me
+% name Pikachu
+*** User from 140.113.215.62:1201 is named 'Pikachu'. ***
+% ls
+bin test.html
+
+
+
+
+
+% *** User '(no name)' entered from 140.113.215.63:1013. ***
+who
+&lt;ID&gt;    &lt;fd&gt;    &lt;nickname&gt;  &lt;IP:port&gt;   &lt;indicate me&gt;
+1   3   Pikachu 140.113.215.62:1201 &lt;-me
+2   8   (no name)   140.113.215.63:1013
+
+
+% *** User from 140.113.215.63:1013 is named 'Snorlax'. ***
+who
+&lt;ID&gt;    &lt;fd&gt;    &lt;nickname&gt;  &lt;IP:port&gt;   &lt;indicate me&gt;
+1   3   Pikachu 140.113.215.62:1201 &lt;-me
+2   8   Snorlax 140.113.215.63:1013
+% *** User '(no name)' entered from 140.113.215.64:1302. ***
+who
+&lt;ID&gt;    &lt;fd&gt;    &lt;nickname&gt;  &lt;IP:port&gt;   &lt;indicate me&gt;
+1   3   Pikachu 140.113.215.62:1201 &lt;-me
+2   8   Snorlax 140.113.215.63:1013
+3   10  (no name)   140.113.215.64:1302
+% yell Who knows how to do project 2? help me plz!
+*** Pikachu yelled ***: Who knows how to do project 2? help me plz!
+
+% *** (no name) yelled ***: Sorry, I don't know. :-(
+
+
+*** Snorlax yelled ***: I know! It's too easy!
+tell 2 Plz help me, my friend!
+
+
+% *** Snorlax told you ***: Yeah! Let me show you how to send files to you!
+
+
+*** Snorlax (#2) just piped 'cat test.html &gt;1' to Pikachu (#1) ***
+
+*** Snorlax told you ***: You can use 'cat &lt;2' to show it!
+cat &lt;5
+*** Error: user #5 does not exist yet. ***
+% cat &lt;2
+*** Pikachu (#1) just received from Snorlax (#2) by 'cat &lt;2' ***
+&lt;!test.html&gt;
+&lt;TITLE&gt;Test&lt;TITLE&gt;
+&lt;BODY&gt;This is a &lt;b&gt;test&lt;/b&gt; program for rwg.&lt;/BODY&gt;
+
+% tell 2 It's works! Great!
+
+
+
+% *** Snorlax (#2) just piped 'number test.html &gt;1' to Pikachu (#1) ***
+
+*** Snorlax told you ***: You can receive by your program! Try 'number &lt;2'!
+number &lt;2
+*** Pikachu (#1) just received from Snorlax (#2) by 'number &lt;2' ***
+1 1 &lt;!test.html&gt;
+2 2 &lt;TITLE&gt;Test&lt;TITLE&gt;
+3 3 &lt;BODY&gt;This is a &lt;b&gt;test&lt;/b&gt; program for rwg.&lt;/BODY&gt;
+
+% tell 2 Cool! You're genius! Thank you!
+
+
+% *** Snorlax told you ***: You're welcome!
+
+*** User 'Snorlax' left. ***
+exit
+bash$</pre>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Snorlax</div>
+        <pre>
+
+
+
+
+
+
+
+
+
+
+
+bash$ telnet nplinux1.nycu.edu.tw 7001
+****************************************
+** Welcome to the information server. **
+****************************************
+*** User '(no name)' entered from 140.113.215.63:1013. ***
+
+
+
+
+
+
+% name Snorlax
+*** User from 140.113.215.63:1013 is named 'Snorlax'. ***
+
+
+
+
+
+% *** User '(no name)' entered from 140.113.215.64:1302. ***
+who
+&lt;ID&gt;    &lt;fd&gt;    &lt;nickname&gt;  &lt;IP:port&gt;   &lt;indicate me&gt;
+1   3   Pikachu 140.113.215.62:1201
+2   8   Snorlax 140.113.215.63:1013 &lt;-me
+3   10  (no name)   140.113.215.64:1302
+
+
+% *** Pikachu yelled ***: Who knows how to do project 2? help me plz!
+*** (no name) yelled ***: Sorry, I don't know. :-(
+yell I know! It's too easy!
+*** Snorlax yelled ***: I know! It's too easy!
+
+
+% *** Pikachu told you ***: Plz help me, my friend!
+tell 1 Yeah! Let me show you how to send files to you!
+
+% cat test.html &gt;1 # write to the user pipe
+*** Snorlax (#2) just piped 'cat test.html &gt;1' to Pikachu (#1) ***
+
+% tell 1 You can use 'cat &lt;2' to show it!
+
+
+
+
+
+
+
+
+% *** Pikachu (#1) just received from Snorlax (#2) by 'cat &lt;2' ***
+
+*** Pikachu told you ***: It's works! Great!
+number test.html &gt;1
+*** Snorlax (#2) just piped 'number test.html &gt;1' to Pikachu (#1) ***
+
+% tell 1 You can receive by your program! Try 'number &lt;2'!
+
+
+
+
+
+
+% *** Pikachu (#1) just received from Snorlax (#2) by 'number &lt;2' ***
+
+*** Pikachu told you ***: Cool! You're genius! Thank you!
+tell 1 You're welcome!
+
+% exit
+bash$</pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

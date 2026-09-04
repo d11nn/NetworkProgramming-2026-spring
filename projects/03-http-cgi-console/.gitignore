@@ -1,0 +1,29 @@
+# Plan / local notes
+implement.md
+
+# Build outputs
+http_server
+console.cgi
+cgi_server.exe
+
+# Object files
+*.o
+*.obj
+
+# Executables / binaries
+*.exe
+*.out
+
+# Local test/runtime files from TA extra files
+panel.cgi
+printenv.cgi
+sample_console.cgi
+test_case/
+np_single_golden
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

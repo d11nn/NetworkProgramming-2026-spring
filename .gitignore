@@ -1,0 +1,9 @@
+# Local GitHub Classroom repositories
+#
+# Public, reviewable source snapshots live under projects/. Keeping these
+# checkouts ignored prevents Git from staging them as inaccessible gitlinks.
+/project-0-c9274326/
+/project-1-c9274326/
+/project-2-c9274326/
+/project-3-d11nn/
+/project-4-d11nn/

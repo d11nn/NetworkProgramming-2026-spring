@@ -1,0 +1,6 @@
+*.md
+*.txt
+*.sh
+*tests/
+*npshell
+*bin/
